@@ -51,6 +51,51 @@ def movimentacaoMateriaPrima(option, s):
 
     print('Movimentacao de materia prima cadastrada com sucesso.')
 
+def consultaMovimentacoes(option, s):
+    s.send(option)
+    movid = 0
+
+    tabela = PrettyTable(['ID', 'Materia Prima', 'Tipo de Movimentacao', 'Quantidade'])
+
+    while True:
+        movid += 1
+        item = s.recv(1480)
+        if item == b'--fim--':
+            break
+        s.send(b'ok')
+        tipo = s.recv(1480)
+        s.send(b'ok')
+        quantidade = s.recv(1480)
+        s.send(b'ok')
+        tabela.add_row([movid, item.decode(), 'Entrada' if tipo == b'0' else 'Saida' , quantidade.decode()])
+    
+    print(tabela)
+
+def consultaEstoque(option, s):
+    s.send(option)
+    itemid = 0
+
+    tabela = PrettyTable(['ID', 'Materia Prima', 'Quantidade'])
+
+    while True:
+        itemid += 1
+        item = s.recv(1480)
+        if item == b'--fim--':
+            break
+        s.send(b'ok')
+        quantidade = s.recv(1480)
+        s.send(b'ok')
+        tabela.add_row([itemid, item.decode(), quantidade.decode()])
+    
+    print(tabela)
+
+def cadastrarMateriaPrima(option, s):
+    msg = bytes(input('Digite o nome do item: '),'utf-8')
+    s.send(option)
+    s.send(msg)
+    s.recv(2)
+    print('Item cadastrado com sucesso')
+
 def client():
     server, port = sys.argv[1], int(sys.argv[2])
 
@@ -83,49 +128,13 @@ def client():
                 s.send(option)
                 break
             elif option == b'1':
-                msg = bytes(input('Digite o nome do item: '),'utf-8')
-                s.send(option)
-                s.send(msg)
-                s.recv(2)
-                print('Item cadastrado com sucesso')
+                cadastrarMateriaPrima(option, s)
             elif option == b'2':
-                s.send(option)
-                itemid = 0
-
-                tabela = PrettyTable(['ID', 'Materia Prima', 'Quantidade'])
-
-                while True:
-                    itemid += 1
-                    item = s.recv(1480)
-                    if item == b'--fim--':
-                        break
-                    s.send(b'ok')
-                    quantidade = s.recv(1480)
-                    s.send(b'ok')
-                    tabela.add_row([itemid, item.decode(), quantidade.decode()])
-                
-                print(tabela)
+                consultaEstoque(option, s)
             elif option == b'3' or option == b'4':
                 movimentacaoMateriaPrima(option, s)
             elif option == b'5':
-                s.send(option)
-                movid = 0
-
-                tabela = PrettyTable(['ID', 'Materia Prima', 'Tipo de Movimentacao', 'Quantidade'])
-
-                while True:
-                    movid += 1
-                    item = s.recv(1480)
-                    if item == b'--fim--':
-                        break
-                    s.send(b'ok')
-                    tipo = s.recv(1480)
-                    s.send(b'ok')
-                    quantidade = s.recv(1480)
-                    s.send(b'ok')
-                    tabela.add_row([movid, item.decode(), 'Entrada' if tipo == b'0' else 'Saida' , quantidade.decode()])
-                
-                print(tabela)
+                consultaMovimentacoes(option, s)
             else:
                 print('Opcao invalida')
 
